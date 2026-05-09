@@ -37,7 +37,7 @@ The current learning bank contains 400 original curated verbs:
 
 - 200 regular verbs
 - 200 irregular verbs
-- 2 mixed test packages
-- 10 original quiz questions
+- 22 mixed test packages
+- 400 original quiz questions with full verb-bank coverage tracking
 
 No official TOEFL, TOEIC, or IELTS questions are copied.

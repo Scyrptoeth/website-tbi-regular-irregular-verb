@@ -41,7 +41,25 @@ export type TestPackage = {
   title: string;
   type: "regular" | "irregular" | "mixed";
   description: string;
+  coverage?: {
+    bankSize: number;
+    coveredVerbIds: string[];
+    irregularCount: number;
+    regularCount: number;
+    verbCount: number;
+  };
   questions: QuizQuestion[];
+};
+
+export type TestCoverageSummary = {
+  coveredVerbCount: number;
+  duplicateVerbIds: string[];
+  irregularCovered: number;
+  packageCount: number;
+  questionCount: number;
+  regularCovered: number;
+  totalBankVerbs: number;
+  uncoveredVerbIds: string[];
 };
 
 const EXPECTED_VERB_TOTAL = 400;
@@ -580,7 +598,109 @@ export const verbs: VerbItem[] = [
 
 const option = (key: OptionKey, text: string): QuizOption => ({ key, text });
 
-export const testPackages: TestPackage[] = [
+function answerText(verb: VerbItem, meaning = verb.meaning) {
+  return `${verb.verb1} - ${verb.verb2} - ${verb.verb3} - ${meaning}`;
+}
+
+function getMeaningDistractor(verb: VerbItem, questionIndex: number) {
+  for (let offset = 7; offset < verbs.length; offset += 7) {
+    const candidate = verbs[(questionIndex + offset) % verbs.length];
+
+    if (candidate.id !== verb.id && candidate.meaning !== verb.meaning) {
+      return candidate.meaning;
+    }
+  }
+
+  return "arti lain";
+}
+
+function getFormDistractors(verb: VerbItem, questionIndex: number) {
+  const base = verb.verb1;
+  const inventedPast = `${base}en`;
+  const inventedProgressive = `${base}ing`;
+  const wrongMeaning = getMeaningDistractor(verb, questionIndex);
+
+  const candidates =
+    verb.type === "regular"
+      ? [
+          `${base} - ${inventedPast} - ${inventedPast} - ${verb.meaning}`,
+          `${base} - ${verb.verb2} - ${inventedPast} - ${verb.meaning}`,
+          answerText(verb, wrongMeaning),
+          `${base} - ${inventedProgressive} - ${verb.verb2} - ${verb.meaning}`,
+          `${base} - ${verb.verb3} - ${verb.verb2} - ${verb.meaning}`,
+        ]
+      : [
+          `${base} - ${inventedPast} - ${inventedPast} - ${verb.meaning}`,
+          `${base} - ${verb.verb3} - ${verb.verb2} - ${verb.meaning}`,
+          answerText(verb, wrongMeaning),
+          `${base} - ${verb.verb2} - ${inventedPast} - ${verb.meaning}`,
+          `${base} - ${inventedProgressive} - ${verb.verb3} - ${verb.meaning}`,
+        ];
+
+  return candidates.filter((candidate, index) => {
+    const correct = answerText(verb);
+    return candidate !== correct && candidates.indexOf(candidate) === index;
+  });
+}
+
+function createCoverageQuestion(verb: VerbItem, questionIndex: number): QuizQuestion {
+  const correctKey = OPTION_KEYS[questionIndex % OPTION_KEYS.length];
+  const correctAnswer = answerText(verb);
+  const distractors = getFormDistractors(verb, questionIndex).slice(0, 3);
+
+  if (distractors.length !== 3) {
+    throw new Error(`Unable to build three distractors for ${verb.id}.`);
+  }
+
+  let distractorIndex = 0;
+  const options = OPTION_KEYS.map((key) => {
+    if (key === correctKey) {
+      return option(key, correctAnswer);
+    }
+
+    const distractor = distractors[distractorIndex];
+    distractorIndex += 1;
+    return option(key, distractor);
+  });
+
+  return {
+    id: `q-bank-${verb.id}`,
+    verbId: verb.id,
+    prompt: `Tentukan kelengkapan dari verb berikut: "${verb.verb1}".`,
+    options,
+    correctKey,
+    explanation: `"${verb.verb1}" adalah ${verb.type} verb dengan pola ${verb.pattern}. Bentuk lengkap yang benar adalah "${verb.verb1} - ${verb.verb2} - ${verb.verb3}" dan artinya "${verb.meaning}". Pilihan lain salah karena memakai bentuk tidak baku, menukar bentuk, atau memasangkan arti yang tidak sesuai.`,
+  };
+}
+
+function chunkItems<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+function interleaveByType(regularItems: VerbItem[], irregularItems: VerbItem[]) {
+  const ordered: VerbItem[] = [];
+  const maxLength = Math.max(regularItems.length, irregularItems.length);
+
+  for (let index = 0; index < maxLength; index += 1) {
+    if (regularItems[index]) {
+      ordered.push(regularItems[index]);
+    }
+
+    if (irregularItems[index]) {
+      ordered.push(irregularItems[index]);
+    }
+  }
+
+  return ordered;
+}
+
+const baseTestPackages: TestPackage[] = [
   {
     id: "verb-forms-set-01",
     title: "Verb Forms Set 01",
@@ -739,6 +859,106 @@ export const testPackages: TestPackage[] = [
   },
 ];
 
+const baseTestVerbIds = new Set(
+  baseTestPackages.flatMap((testPackage) =>
+    testPackage.questions.map((question) => question.verbId),
+  ),
+);
+const remainingRegularVerbs = verbs.filter(
+  (verb) => verb.type === "regular" && !baseTestVerbIds.has(verb.id),
+);
+const remainingIrregularVerbs = verbs.filter(
+  (verb) => verb.type === "irregular" && !baseTestVerbIds.has(verb.id),
+);
+const coveragePackageSize = 20;
+const coverageVerbOrder = interleaveByType(remainingRegularVerbs, remainingIrregularVerbs);
+const coverageChunks = chunkItems(coverageVerbOrder, coveragePackageSize);
+
+const coverageTestPackages: TestPackage[] = coverageChunks.map((packageVerbs, packageIndex) => {
+  const packageNumber = baseTestPackages.length + packageIndex + 1;
+  const regularCount = packageVerbs.filter((verb) => verb.type === "regular").length;
+  const irregularCount = packageVerbs.filter((verb) => verb.type === "irregular").length;
+
+  return {
+    id: `verb-forms-set-${String(packageNumber).padStart(2, "0")}`,
+    title: `Verb Forms Set ${String(packageNumber).padStart(2, "0")}`,
+    type: "mixed",
+    description:
+      "Paket campuran untuk melacak coverage bank verb tanpa membocorkan kategori jawaban.",
+    coverage: {
+      bankSize: verbs.length,
+      coveredVerbIds: packageVerbs.map((verb) => verb.id),
+      irregularCount,
+      regularCount,
+      verbCount: packageVerbs.length,
+    },
+    questions: packageVerbs.map((verb, questionIndex) =>
+      createCoverageQuestion(
+        verb,
+        packageIndex * coveragePackageSize + questionIndex,
+      ),
+    ),
+  };
+});
+
+function withCoverageMetadata(testPackage: TestPackage): TestPackage {
+  const packageVerbs = testPackage.questions
+    .map((question) => verbs.find((verb) => verb.id === question.verbId))
+    .filter((verb): verb is VerbItem => Boolean(verb));
+
+  return {
+    ...testPackage,
+    coverage: {
+      bankSize: verbs.length,
+      coveredVerbIds: testPackage.questions.map((question) => question.verbId),
+      irregularCount: packageVerbs.filter((verb) => verb.type === "irregular").length,
+      regularCount: packageVerbs.filter((verb) => verb.type === "regular").length,
+      verbCount: testPackage.questions.length,
+    },
+  };
+}
+
+export const testPackages: TestPackage[] = [
+  ...baseTestPackages,
+  ...coverageTestPackages,
+].map(withCoverageMetadata);
+
+function createTestCoverageSummary(
+  packages: TestPackage[],
+  bank: VerbItem[],
+): TestCoverageSummary {
+  const coveredVerbIds = packages.flatMap((testPackage) =>
+    testPackage.questions.map((question) => question.verbId),
+  );
+  const seenVerbIds = new Set<string>();
+  const duplicateVerbIds = new Set<string>();
+
+  for (const verbId of coveredVerbIds) {
+    if (seenVerbIds.has(verbId)) {
+      duplicateVerbIds.add(verbId);
+    }
+
+    seenVerbIds.add(verbId);
+  }
+
+  const coveredVerbs = bank.filter((verb) => seenVerbIds.has(verb.id));
+
+  return {
+    coveredVerbCount: seenVerbIds.size,
+    duplicateVerbIds: [...duplicateVerbIds],
+    irregularCovered: coveredVerbs.filter((verb) => verb.type === "irregular").length,
+    packageCount: packages.length,
+    questionCount: coveredVerbIds.length,
+    regularCovered: coveredVerbs.filter((verb) => verb.type === "regular").length,
+    totalBankVerbs: bank.length,
+    uncoveredVerbIds: bank
+      .filter((verb) => !seenVerbIds.has(verb.id))
+      .map((verb) => verb.id),
+  };
+}
+
+export const testCoverage = createTestCoverageSummary(testPackages, verbs);
+
 export const packageGroups = [
   {
     id: "regular-core",
@@ -769,6 +989,7 @@ export function getVerbById(id: string) {
 export function validateVerbContent() {
   const verbIds = new Set<string>();
   const verbForms = new Set<string>();
+  const questionIds = new Set<string>();
 
   if (verbs.length !== EXPECTED_VERB_TOTAL) {
     throw new Error(
@@ -830,12 +1051,33 @@ export function validateVerbContent() {
       throw new Error(`${testPackage.id} has no questions.`);
     }
 
+    const packageRegularTotal = testPackage.questions.filter((question) => {
+      const questionVerb = getVerbById(question.verbId);
+      return questionVerb?.type === "regular";
+    }).length;
+    const packageIrregularTotal = testPackage.questions.filter((question) => {
+      const questionVerb = getVerbById(question.verbId);
+      return questionVerb?.type === "irregular";
+    }).length;
+
+    if (Math.abs(packageRegularTotal - packageIrregularTotal) > 1) {
+      throw new Error(`${testPackage.id} must balance regular and irregular questions.`);
+    }
+
     for (const question of testPackage.questions) {
       if (!verbIds.has(question.verbId)) {
         throw new Error(`${question.id} references missing verb ${question.verbId}.`);
       }
 
+      if (questionIds.has(question.id)) {
+        throw new Error(`Duplicate question id: ${question.id}.`);
+      }
+
+      questionIds.add(question.id);
+
       const optionKeys = question.options.map((optionItem) => optionItem.key);
+      const optionTexts = question.options.map((optionItem) => optionItem.text);
+      const questionVerb = getVerbById(question.verbId);
 
       if (question.options.length !== OPTION_KEYS.length) {
         throw new Error(`${question.id} must have exactly four options.`);
@@ -849,10 +1091,66 @@ export function validateVerbContent() {
         throw new Error(`${question.id} correct key is not in options.`);
       }
 
+      if (new Set(optionTexts).size !== optionTexts.length) {
+        throw new Error(`${question.id} must not contain duplicate option text.`);
+      }
+
+      const correctOption = question.options.find(
+        (optionItem) => optionItem.key === question.correctKey,
+      );
+
+      if (!questionVerb || correctOption?.text !== answerText(questionVerb)) {
+        throw new Error(`${question.id} correct option must match the referenced verb.`);
+      }
+
+      const correctTextCount = optionTexts.filter(
+        (optionText) => questionVerb && optionText === answerText(questionVerb),
+      ).length;
+
+      if (correctTextCount !== 1) {
+        throw new Error(`${question.id} must have exactly one correct answer text.`);
+      }
+
       if (!question.prompt.includes('"') || !question.explanation.trim()) {
         throw new Error(`${question.id} must include a quoted prompt and explanation.`);
       }
     }
+  }
+
+  if (testCoverage.totalBankVerbs !== verbs.length) {
+    throw new Error("Test coverage bank size does not match the active verb bank.");
+  }
+
+  if (testCoverage.questionCount !== verbs.length) {
+    throw new Error(
+      `Expected test coverage to have ${verbs.length} questions, received ${testCoverage.questionCount}.`,
+    );
+  }
+
+  if (testCoverage.coveredVerbCount !== verbs.length) {
+    throw new Error(
+      `Expected test coverage to cover ${verbs.length} verbs, received ${testCoverage.coveredVerbCount}.`,
+    );
+  }
+
+  if (testCoverage.regularCovered !== regularTotal) {
+    throw new Error(
+      `Expected test coverage to cover ${regularTotal} regular verbs, received ${testCoverage.regularCovered}.`,
+    );
+  }
+
+  if (testCoverage.irregularCovered !== irregularTotal) {
+    throw new Error(
+      `Expected test coverage to cover ${irregularTotal} irregular verbs, received ${testCoverage.irregularCovered}.`,
+    );
+  }
+
+  if (testCoverage.uncoveredVerbIds.length > 0) {
+    throw new Error(`Uncovered verb ids: ${testCoverage.uncoveredVerbIds.join(", ")}.`);
+  }
+
+  if (testCoverage.duplicateVerbIds.length > 0) {
+    throw new Error(`Duplicate test coverage ids: ${testCoverage.duplicateVerbIds.join(", ")}.`);
   }
 }
 

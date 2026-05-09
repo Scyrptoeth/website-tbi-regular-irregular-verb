@@ -34,6 +34,11 @@ test("material and flipcard share package rail behavior", async ({ page }) => {
 test("test package saves answers and locks after final submit", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^Tes$/i }).click();
+
+  await expect(
+    page.getByText(/Coverage: 5\/400 verb bank \| 2 regular,\s*3 irregular/i),
+  ).toBeVisible();
+
   await page.getByRole("button", { name: /go - went - gone - pergi/i }).click();
   await page.getByRole("button", { name: /Submit final/i }).click();
 

@@ -1089,6 +1089,13 @@ function TestPanel({
         <span className="eyebrow">{getTypeLabel(testPackage.type)}</span>
         <h3>{testPackage.title}</h3>
         <p>{testPackage.description}</p>
+        {testPackage.coverage ? (
+          <small>
+            Coverage: {testPackage.coverage.verbCount}/{testPackage.coverage.bankSize} verb
+            bank | {testPackage.coverage.regularCount} regular,{" "}
+            {testPackage.coverage.irregularCount} irregular
+          </small>
+        ) : null}
         {submittedAttempt ? (
           <small>Submitted: {formatDate(submittedAttempt.submittedAt)}</small>
         ) : null}
