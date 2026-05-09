@@ -3,6 +3,9 @@ export type VerbLike = {
   base?: string;
   infinitive?: string;
   present?: string;
+  verb1?: string;
+  verb2?: string;
+  verb3?: string;
   past?: string;
   pastSimple?: string;
   pastParticiple?: string;
@@ -128,6 +131,9 @@ export function filterVerbs<T extends VerbLike>(verbs: T[], query: string): T[] 
         verb.base,
         verb.infinitive,
         verb.present,
+        verb.verb1,
+        verb.verb2,
+        verb.verb3,
         verb.past,
         verb.pastSimple,
         verb.pastParticiple,

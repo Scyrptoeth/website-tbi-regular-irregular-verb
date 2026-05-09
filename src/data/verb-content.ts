@@ -39,6 +39,11 @@ export type TestPackage = {
   questions: QuizQuestion[];
 };
 
+const EXPECTED_MVP_VERB_TOTAL = 40;
+const EXPECTED_MVP_REGULAR_TOTAL = 20;
+const EXPECTED_MVP_IRREGULAR_TOTAL = 20;
+const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
+
 export const verbs: VerbItem[] = [
   {
     id: "reg-accept",
@@ -749,3 +754,95 @@ export const packageGroups = [
 export function getVerbById(id: string) {
   return verbs.find((verb) => verb.id === id);
 }
+
+export function validateVerbContent() {
+  const verbIds = new Set<string>();
+  const verbForms = new Set<string>();
+
+  if (verbs.length !== EXPECTED_MVP_VERB_TOTAL) {
+    throw new Error(
+      `Expected ${EXPECTED_MVP_VERB_TOTAL} MVP verbs, received ${verbs.length}.`,
+    );
+  }
+
+  const regularTotal = verbs.filter((verb) => verb.type === "regular").length;
+  const irregularTotal = verbs.filter((verb) => verb.type === "irregular").length;
+
+  if (regularTotal !== EXPECTED_MVP_REGULAR_TOTAL) {
+    throw new Error(
+      `Expected ${EXPECTED_MVP_REGULAR_TOTAL} regular verbs, received ${regularTotal}.`,
+    );
+  }
+
+  if (irregularTotal !== EXPECTED_MVP_IRREGULAR_TOTAL) {
+    throw new Error(
+      `Expected ${EXPECTED_MVP_IRREGULAR_TOTAL} irregular verbs, received ${irregularTotal}.`,
+    );
+  }
+
+  for (const verb of verbs) {
+    const fields = [
+      verb.id,
+      verb.verb1,
+      verb.verb2,
+      verb.verb3,
+      verb.meaning,
+      verb.pattern,
+      verb.note,
+      verb.commonMistake,
+    ];
+
+    if (fields.some((field) => !field.trim())) {
+      throw new Error(`Verb ${verb.id || "(missing id)"} has an empty field.`);
+    }
+
+    if (verbIds.has(verb.id)) {
+      throw new Error(`Duplicate verb id: ${verb.id}.`);
+    }
+
+    const formKey = `${verb.verb1}:${verb.type}`;
+
+    if (verbForms.has(formKey)) {
+      throw new Error(`Duplicate verb form/type pair: ${formKey}.`);
+    }
+
+    verbIds.add(verb.id);
+    verbForms.add(formKey);
+  }
+
+  for (const testPackage of testPackages) {
+    if (testPackage.type !== "mixed") {
+      throw new Error(`${testPackage.id} must be a mixed package to avoid label leaks.`);
+    }
+
+    if (testPackage.questions.length === 0) {
+      throw new Error(`${testPackage.id} has no questions.`);
+    }
+
+    for (const question of testPackage.questions) {
+      if (!verbIds.has(question.verbId)) {
+        throw new Error(`${question.id} references missing verb ${question.verbId}.`);
+      }
+
+      const optionKeys = question.options.map((optionItem) => optionItem.key);
+
+      if (question.options.length !== OPTION_KEYS.length) {
+        throw new Error(`${question.id} must have exactly four options.`);
+      }
+
+      if (optionKeys.join("") !== OPTION_KEYS.join("")) {
+        throw new Error(`${question.id} options must be ordered A-D.`);
+      }
+
+      if (!optionKeys.includes(question.correctKey)) {
+        throw new Error(`${question.id} correct key is not in options.`);
+      }
+
+      if (!question.prompt.includes('"') || !question.explanation.trim()) {
+        throw new Error(`${question.id} must include a quoted prompt and explanation.`);
+      }
+    }
+  }
+}
+
+validateVerbContent();

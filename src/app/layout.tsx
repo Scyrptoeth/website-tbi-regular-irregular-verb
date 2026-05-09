@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { DM_Mono, DM_Sans } from "next/font/google";
+import { Atkinson_Hyperlegible, DM_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const atkinson = Atkinson_Hyperlegible({
+  variable: "--font-body",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
 const dmMono = DM_Mono({
-  variable: "--font-dm-mono",
+  variable: "--font-mono",
   weight: ["400", "500"],
   subsets: ["latin"],
 });
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${dmSans.variable} ${dmMono.variable} h-full scroll-smooth antialiased`}
+      className={`${atkinson.variable} ${dmMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">{children}</body>
     </html>

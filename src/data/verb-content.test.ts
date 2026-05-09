@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { testPackages, verbs } from "./verb-content";
+import { testPackages, validateVerbContent, verbs } from "./verb-content";
 
 describe("verb content integrity", () => {
+  it("passes the import-time content contract", () => {
+    expect(() => validateVerbContent()).not.toThrow();
+  });
+
   it("ships a balanced 40-verb MVP sample", () => {
     expect(verbs).toHaveLength(40);
     expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(20);

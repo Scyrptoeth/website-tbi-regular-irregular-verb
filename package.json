@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run src",
+    "test:content": "vitest run src",
+    "test:e2e": "playwright test tests/smoke.spec.ts",
+    "test:a11y": "playwright test tests/accessibility.spec.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -17,6 +20,8 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
