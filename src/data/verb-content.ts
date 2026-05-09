@@ -62,9 +62,9 @@ export type TestCoverageSummary = {
   uncoveredVerbIds: string[];
 };
 
-const EXPECTED_VERB_TOTAL = 400;
-const EXPECTED_REGULAR_TOTAL = 200;
-const EXPECTED_IRREGULAR_TOTAL = 200;
+const EXPECTED_VERB_TOTAL = 600;
+const EXPECTED_REGULAR_TOTAL = 300;
+const EXPECTED_IRREGULAR_TOTAL = 300;
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
 const TEST_PACKAGE_SIZE = 10;
 

@@ -36,7 +36,7 @@ test("test package saves answers and locks after final submit", async ({ page })
   await page.getByRole("button", { name: /^Tes$/i }).click();
 
   await expect(
-    page.getByText(/Coverage: 10\/400 verb bank \| 5 regular,\s*5 irregular/i),
+    page.getByText(/Coverage: 10\/600 verb bank \| 5 regular,\s*5 irregular/i),
   ).toBeVisible();
 
   await page.getByRole("button", { name: /go - went - gone - pergi/i }).click();

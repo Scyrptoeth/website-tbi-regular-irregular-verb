@@ -33,11 +33,11 @@ npm run dev
 
 ## Content Baseline
 
-The current learning bank contains 400 original curated verbs:
+The current learning bank contains 600 original curated verbs:
 
-- 200 regular verbs
-- 200 irregular verbs
-- 40 mixed test packages
-- 400 original quiz questions with full verb-bank coverage tracking
+- 300 regular verbs
+- 300 irregular verbs
+- 60 mixed test packages
+- 600 original quiz questions with full verb-bank coverage tracking
 
 No official TOEFL, TOEIC, or IELTS questions are copied.

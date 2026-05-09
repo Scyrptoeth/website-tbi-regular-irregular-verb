@@ -6,10 +6,10 @@ describe("verb content integrity", () => {
     expect(() => validateVerbContent()).not.toThrow();
   });
 
-  it("ships a balanced 400-verb learning bank", () => {
-    expect(verbs).toHaveLength(400);
-    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(200);
-    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(200);
+  it("ships a balanced 600-verb learning bank", () => {
+    expect(verbs).toHaveLength(600);
+    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(300);
+    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(300);
   });
 
   it("keeps verb ids and base forms unique with complete fields", () => {
@@ -52,19 +52,19 @@ describe("verb content integrity", () => {
     }
   });
 
-  it("tracks full mixed-test coverage for the 400-verb bank", () => {
-    expect(testCoverage.totalBankVerbs).toBe(400);
-    expect(testCoverage.questionCount).toBe(400);
-    expect(testCoverage.coveredVerbCount).toBe(400);
-    expect(testCoverage.packageCount).toBe(40);
-    expect(testCoverage.regularCovered).toBe(200);
-    expect(testCoverage.irregularCovered).toBe(200);
+  it("tracks full mixed-test coverage for the 600-verb bank", () => {
+    expect(testCoverage.totalBankVerbs).toBe(600);
+    expect(testCoverage.questionCount).toBe(600);
+    expect(testCoverage.coveredVerbCount).toBe(600);
+    expect(testCoverage.packageCount).toBe(60);
+    expect(testCoverage.regularCovered).toBe(300);
+    expect(testCoverage.irregularCovered).toBe(300);
     expect(testCoverage.uncoveredVerbIds).toEqual([]);
     expect(testCoverage.duplicateVerbIds).toEqual([]);
   });
 
   it("keeps mixed test packages at ten questions each, balanced, and tracked", () => {
-    expect(testPackages).toHaveLength(40);
+    expect(testPackages).toHaveLength(60);
 
     for (const testPackage of testPackages) {
       expect(testPackage.questions).toHaveLength(10);
@@ -80,7 +80,7 @@ describe("verb content integrity", () => {
 
       expect(Math.abs(regularQuestions.length - irregularQuestions.length)).toBeLessThanOrEqual(1);
 
-      expect(testPackage.coverage?.bankSize).toBe(400);
+      expect(testPackage.coverage?.bankSize).toBe(600);
       expect(testPackage.coverage?.verbCount).toBe(10);
       expect(testPackage.coverage?.regularCount).toBe(regularQuestions.length);
       expect(testPackage.coverage?.irregularCount).toBe(irregularQuestions.length);
