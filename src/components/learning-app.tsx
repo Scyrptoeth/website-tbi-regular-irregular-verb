@@ -2,7 +2,7 @@
 
 import {
   BookOpen,
-  Brain,
+  ChartNoAxesColumnIncreasing,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -10,14 +10,14 @@ import {
   Circle,
   ClipboardCheck,
   Eye,
-  LayoutDashboard,
   Lock,
+  Layers,
   Menu,
   PanelLeftClose,
-  PanelLeftOpen,
   RotateCcw,
   Search,
   ShieldCheck,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -81,10 +81,10 @@ const emptyProgress: StoredProgress = {
 };
 
 const navigation: Array<{ id: View; label: string; icon: LucideIcon }> = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "dashboard", label: "Dashboard", icon: ChartNoAxesColumnIncreasing },
   { id: "search", label: "Pencarian", icon: Search },
   { id: "materi", label: "Materi", icon: BookOpen },
-  { id: "flipcard", label: "Flipcard", icon: Brain },
+  { id: "flipcard", label: "Flipcard", icon: Layers },
   { id: "tes", label: "Tes", icon: ClipboardCheck },
   { id: "superadmin", label: "SuperAdmin", icon: ShieldCheck },
 ];
@@ -306,33 +306,36 @@ function StatCard({
   );
 }
 
-function ProgressBar({
+function DashboardMetricCard({
   label,
   value,
   total,
+  tone = "teal",
 }: {
   label: string;
   value: number;
   total: number;
+  tone?: "teal" | "ink" | "amber";
 }) {
   const progress = percentage(value, total);
 
   return (
-    <div className="progress-line">
-      <div>
+    <article className={`stat-card dashboard-metric-card is-${tone}`}>
+      <div className="stat-card-head">
         <span>{label}</span>
-        <strong>
-          {value}/{total}
-        </strong>
+        <small>{progress}%</small>
       </div>
+      <strong>
+        {value}<small>/{total}</small>
+      </strong>
       <div
-        aria-label={`${label}: ${progress}%`}
-        className="progress-track"
+        aria-label={`${label}: ${value}/${total} atau ${progress}%`}
+        className="metric-track"
         role="img"
       >
         <span style={{ width: `${progress}%` }} />
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -486,8 +489,6 @@ export function LearningApp() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const regularCount = verbs.filter((verb) => verb.type === "regular").length;
-  const irregularCount = verbs.filter((verb) => verb.type === "irregular").length;
   const viewedCount = progress.viewedCards.length;
   const submittedCount = Object.keys(progress.submitted).length;
   const draftCount = testPackages.filter(
@@ -505,6 +506,14 @@ export function LearningApp() {
     materialFilter === "all" ? true : verb.type === materialFilter,
   );
   const currentCard = activeStudyVerbs[cardIndex] ?? verbs[0];
+  const activeStudyPackageIndex = Math.max(
+    0,
+    studyPackages.findIndex((item) => item.id === activeStudyPackage?.id),
+  );
+  const nextStudyPackage =
+    studyPackages[
+      Math.min(activeStudyPackageIndex + 1, Math.max(studyPackages.length - 1, 0))
+    ] ?? activeStudyPackage;
   const submittedAttempt = activeTestPackage
     ? progress.submitted[activeTestPackage.id]
     : undefined;
@@ -648,8 +657,6 @@ export function LearningApp() {
                 width={176}
               />
             </div>
-            <span className="brand-kicker">TBI Learning</span>
-            <strong>Verb Forms</strong>
           </div>
           <button
             aria-expanded={!sidebarCollapsed}
@@ -660,11 +667,7 @@ export function LearningApp() {
             onClick={() => setSidebarCollapsed((current) => !current)}
             type="button"
           >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={19} />
-            ) : (
-              <PanelLeftClose size={19} />
-            )}
+            {sidebarCollapsed ? <ChevronRight size={19} /> : <ChevronLeft size={19} />}
           </button>
         </div>
 
@@ -694,67 +697,62 @@ export function LearningApp() {
           <section className="view-stack" aria-labelledby="dashboard-title">
             <div className="dashboard-hero">
               <div className="dashboard-copy">
-                <span className="eyebrow">Persiapantubel</span>
+                <span className="eyebrow">Persiapantubel TBI</span>
                 <h1 id="dashboard-title">TBI - Regular and Irregular Verb</h1>
                 <p>
-                  Cockpit belajar untuk menguasai Verb-1, Verb-2, Verb-3, dan
-                  arti bahasa Indonesia melalui Materi, Flipcard, dan Tes.
+                  Kenali Regular dan Irregular Verb yang relevan untuk latihan
+                  TOEFL, TOEIC, dan IELTS melalui fasilitas Materi, Flipcard,
+                  dan Tes.
                 </p>
               </div>
               <div className="hero-mark">
-                <small>Verb Bank</small>
+                <Sparkles aria-hidden="true" size={36} />
                 <span>{verbs.length}</span>
+                <small>Verb Bank</small>
               </div>
             </div>
 
             <div className="stat-grid">
-              <StatCard
-                detail={`${regularCount} regular, ${irregularCount} irregular`}
-                label="Konten aktif"
-                value={`${verbs.length}`}
+              <DashboardMetricCard
+                label="Flipcard dibuka"
+                total={verbs.length}
+                value={viewedCount}
               />
-              <StatCard
-                detail={`${percentage(viewedCount, verbs.length)}% dari bank sample`}
-                label="Flipcard dilihat"
-                value={`${viewedCount}/${verbs.length}`}
-              />
-              <StatCard
-                detail={`${draftCount} draft tersimpan lokal`}
-                label="Tes submitted"
-                value={`${submittedCount}/${testPackages.length}`}
-              />
-            </div>
-
-            <section className="panel progress-panel" aria-labelledby="progress-title">
-              <div>
-                <span className="eyebrow">Progress</span>
-                <h2 id="progress-title">Status belajar</h2>
-              </div>
-              <ProgressBar label="Flipcard viewed" total={verbs.length} value={viewedCount} />
-              <ProgressBar
-                label="Tes submitted"
+              <DashboardMetricCard
+                label="Tes submit"
+                tone="ink"
                 total={testPackages.length}
                 value={submittedCount}
               />
-              <ProgressBar
+              <DashboardMetricCard
                 label="Draft tes"
+                tone="amber"
                 total={testPackages.length}
                 value={draftCount}
               />
-            </section>
+            </div>
 
             <div className="action-stack">
-              <button className="action-row" onClick={() => navigateTo("materi")} type="button">
+              <button className="action-row" onClick={() => navigateTo("flipcard")} type="button">
                 <span>
-                  <span className="eyebrow">Next</span>
-                  <strong>Buka materi paket pertama</strong>
+                  <span className="eyebrow">Kartu berikutnya</span>
+                  <strong>{currentCard?.verb1 ?? "accept"}</strong>
                 </span>
                 <ChevronRight aria-hidden="true" />
               </button>
-              <button className="action-row" onClick={() => navigateTo("tes")} type="button">
+              <button
+                className="action-row"
+                onClick={() => {
+                  if (nextStudyPackage) {
+                    setActiveStudyPackageId(nextStudyPackage.id);
+                  }
+                  navigateTo("materi");
+                }}
+                type="button"
+              >
                 <span>
-                  <span className="eyebrow">Assessment</span>
-                  <strong>Lanjutkan tes bentuk verb</strong>
+                  <span className="eyebrow">Paket berikutnya</span>
+                  <strong>{nextStudyPackage?.title ?? "Verb Forms 02"}</strong>
                 </span>
                 <ChevronRight aria-hidden="true" />
               </button>
