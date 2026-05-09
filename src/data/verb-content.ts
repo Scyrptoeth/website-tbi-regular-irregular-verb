@@ -1,3 +1,8 @@
+import {
+  additionalIrregularVerbs,
+  additionalRegularVerbs,
+} from "./additional-verbs";
+
 export type VerbType = "regular" | "irregular";
 export type VerbTier = "Core" | "Exam-support" | "Extended";
 export type Difficulty = "Basic" | "Medium" | "Advanced";
@@ -39,12 +44,12 @@ export type TestPackage = {
   questions: QuizQuestion[];
 };
 
-const EXPECTED_MVP_VERB_TOTAL = 40;
-const EXPECTED_MVP_REGULAR_TOTAL = 20;
-const EXPECTED_MVP_IRREGULAR_TOTAL = 20;
+const EXPECTED_VERB_TOTAL = 240;
+const EXPECTED_REGULAR_TOTAL = 120;
+const EXPECTED_IRREGULAR_TOTAL = 120;
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
-export const verbs: VerbItem[] = [
+const baseVerbs: VerbItem[] = [
   {
     id: "reg-accept",
     type: "regular",
@@ -567,6 +572,12 @@ export const verbs: VerbItem[] = [
   },
 ];
 
+export const verbs: VerbItem[] = [
+  ...baseVerbs,
+  ...additionalRegularVerbs,
+  ...additionalIrregularVerbs,
+];
+
 const option = (key: OptionKey, text: string): QuizOption => ({ key, text });
 
 export const testPackages: TestPackage[] = [
@@ -759,24 +770,24 @@ export function validateVerbContent() {
   const verbIds = new Set<string>();
   const verbForms = new Set<string>();
 
-  if (verbs.length !== EXPECTED_MVP_VERB_TOTAL) {
+  if (verbs.length !== EXPECTED_VERB_TOTAL) {
     throw new Error(
-      `Expected ${EXPECTED_MVP_VERB_TOTAL} MVP verbs, received ${verbs.length}.`,
+      `Expected ${EXPECTED_VERB_TOTAL} verbs, received ${verbs.length}.`,
     );
   }
 
   const regularTotal = verbs.filter((verb) => verb.type === "regular").length;
   const irregularTotal = verbs.filter((verb) => verb.type === "irregular").length;
 
-  if (regularTotal !== EXPECTED_MVP_REGULAR_TOTAL) {
+  if (regularTotal !== EXPECTED_REGULAR_TOTAL) {
     throw new Error(
-      `Expected ${EXPECTED_MVP_REGULAR_TOTAL} regular verbs, received ${regularTotal}.`,
+      `Expected ${EXPECTED_REGULAR_TOTAL} regular verbs, received ${regularTotal}.`,
     );
   }
 
-  if (irregularTotal !== EXPECTED_MVP_IRREGULAR_TOTAL) {
+  if (irregularTotal !== EXPECTED_IRREGULAR_TOTAL) {
     throw new Error(
-      `Expected ${EXPECTED_MVP_IRREGULAR_TOTAL} irregular verbs, received ${irregularTotal}.`,
+      `Expected ${EXPECTED_IRREGULAR_TOTAL} irregular verbs, received ${irregularTotal}.`,
     );
   }
 
@@ -800,10 +811,10 @@ export function validateVerbContent() {
       throw new Error(`Duplicate verb id: ${verb.id}.`);
     }
 
-    const formKey = `${verb.verb1}:${verb.type}`;
+    const formKey = verb.verb1.toLowerCase();
 
     if (verbForms.has(formKey)) {
-      throw new Error(`Duplicate verb form/type pair: ${formKey}.`);
+      throw new Error(`Duplicate verb form: ${formKey}.`);
     }
 
     verbIds.add(verb.id);

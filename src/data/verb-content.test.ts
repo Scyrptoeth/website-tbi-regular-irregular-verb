@@ -6,15 +6,18 @@ describe("verb content integrity", () => {
     expect(() => validateVerbContent()).not.toThrow();
   });
 
-  it("ships a balanced 40-verb MVP sample", () => {
-    expect(verbs).toHaveLength(40);
-    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(20);
-    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(20);
+  it("ships a balanced 240-verb learning bank", () => {
+    expect(verbs).toHaveLength(240);
+    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(120);
+    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(120);
   });
 
-  it("keeps verb ids unique and fields complete", () => {
+  it("keeps verb ids and base forms unique with complete fields", () => {
     const ids = new Set(verbs.map((verb) => verb.id));
+    const baseForms = new Set(verbs.map((verb) => verb.verb1.toLowerCase()));
+
     expect(ids.size).toBe(verbs.length);
+    expect(baseForms.size).toBe(verbs.length);
 
     for (const verb of verbs) {
       expect(verb.verb1).toBeTruthy();
