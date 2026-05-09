@@ -66,6 +66,7 @@ const EXPECTED_VERB_TOTAL = 400;
 const EXPECTED_REGULAR_TOTAL = 200;
 const EXPECTED_IRREGULAR_TOTAL = 200;
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
+const TEST_PACKAGE_SIZE = 10;
 
 const baseVerbs: VerbItem[] = [
   {
@@ -777,14 +778,6 @@ const baseTestPackages: TestPackage[] = [
         explanation:
           '"Write" adalah irregular verb: "write - wrote - written". Artinya "menulis".',
       },
-    ],
-  },
-  {
-    id: "verb-forms-set-02",
-    title: "Verb Forms Set 02",
-    type: "mixed",
-    description: "Latihan lanjutan dengan pola -d, -ied, dan vowel change.",
-    questions: [
       {
         id: "q-achieve",
         verbId: "reg-achieve",
@@ -870,7 +863,7 @@ const remainingRegularVerbs = verbs.filter(
 const remainingIrregularVerbs = verbs.filter(
   (verb) => verb.type === "irregular" && !baseTestVerbIds.has(verb.id),
 );
-const coveragePackageSize = 20;
+const coveragePackageSize = TEST_PACKAGE_SIZE;
 const coverageVerbOrder = interleaveByType(remainingRegularVerbs, remainingIrregularVerbs);
 const coverageChunks = chunkItems(coverageVerbOrder, coveragePackageSize);
 
@@ -1047,8 +1040,8 @@ export function validateVerbContent() {
       throw new Error(`${testPackage.id} must be a mixed package to avoid label leaks.`);
     }
 
-    if (testPackage.questions.length === 0) {
-      throw new Error(`${testPackage.id} has no questions.`);
+    if (testPackage.questions.length !== TEST_PACKAGE_SIZE) {
+      throw new Error(`${testPackage.id} must have exactly ${TEST_PACKAGE_SIZE} questions.`);
     }
 
     const packageRegularTotal = testPackage.questions.filter((question) => {

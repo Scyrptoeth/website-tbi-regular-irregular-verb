@@ -56,16 +56,19 @@ describe("verb content integrity", () => {
     expect(testCoverage.totalBankVerbs).toBe(400);
     expect(testCoverage.questionCount).toBe(400);
     expect(testCoverage.coveredVerbCount).toBe(400);
+    expect(testCoverage.packageCount).toBe(40);
     expect(testCoverage.regularCovered).toBe(200);
     expect(testCoverage.irregularCovered).toBe(200);
     expect(testCoverage.uncoveredVerbIds).toEqual([]);
     expect(testCoverage.duplicateVerbIds).toEqual([]);
   });
 
-  it("keeps additional mixed test packages balanced and tracked", () => {
-    expect(testPackages.length).toBeGreaterThan(2);
+  it("keeps mixed test packages at ten questions each, balanced, and tracked", () => {
+    expect(testPackages).toHaveLength(40);
 
     for (const testPackage of testPackages) {
+      expect(testPackage.questions).toHaveLength(10);
+
       const regularQuestions = testPackage.questions.filter((question) => {
         const verb = verbs.find((item) => item.id === question.verbId);
         return verb?.type === "regular";
@@ -77,15 +80,13 @@ describe("verb content integrity", () => {
 
       expect(Math.abs(regularQuestions.length - irregularQuestions.length)).toBeLessThanOrEqual(1);
 
-      if (testPackage.coverage) {
-        expect(testPackage.coverage.bankSize).toBe(400);
-        expect(testPackage.coverage.verbCount).toBe(testPackage.questions.length);
-        expect(testPackage.coverage.regularCount).toBe(regularQuestions.length);
-        expect(testPackage.coverage.irregularCount).toBe(irregularQuestions.length);
-        expect(testPackage.coverage.coveredVerbIds).toEqual(
-          testPackage.questions.map((question) => question.verbId),
-        );
-      }
+      expect(testPackage.coverage?.bankSize).toBe(400);
+      expect(testPackage.coverage?.verbCount).toBe(10);
+      expect(testPackage.coverage?.regularCount).toBe(regularQuestions.length);
+      expect(testPackage.coverage?.irregularCount).toBe(irregularQuestions.length);
+      expect(testPackage.coverage?.coveredVerbIds).toEqual(
+        testPackage.questions.map((question) => question.verbId),
+      );
     }
   });
 });

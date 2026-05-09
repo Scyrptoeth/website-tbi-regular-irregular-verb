@@ -70,7 +70,7 @@ type RailItem = {
   status: PackageStatus;
 };
 
-const STORAGE_KEY = "tbi-regular-irregular-progress-v2";
+const STORAGE_KEY = "tbi-regular-irregular-progress-v3";
 const PACKAGE_PAGE_SIZE = 10;
 const STUDY_PACKAGE_SIZE = 10;
 

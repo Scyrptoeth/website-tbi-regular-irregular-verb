@@ -36,12 +36,12 @@ test("test package saves answers and locks after final submit", async ({ page })
   await page.getByRole("button", { name: /^Tes$/i }).click();
 
   await expect(
-    page.getByText(/Coverage: 5\/400 verb bank \| 2 regular,\s*3 irregular/i),
+    page.getByText(/Coverage: 10\/400 verb bank \| 5 regular,\s*5 irregular/i),
   ).toBeVisible();
 
   await page.getByRole("button", { name: /go - went - gone - pergi/i }).click();
   await page.getByRole("button", { name: /Submit final/i }).click();
 
-  await expect(page.getByText("Skor: 1/5")).toBeVisible();
+  await expect(page.getByText("Skor: 1/10")).toBeVisible();
   await expect(page.getByText(/Jawaban benar: D/i)).toBeVisible();
 });
