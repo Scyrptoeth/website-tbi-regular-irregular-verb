@@ -6,10 +6,10 @@ describe("verb content integrity", () => {
     expect(() => validateVerbContent()).not.toThrow();
   });
 
-  it("ships a balanced 240-verb learning bank", () => {
-    expect(verbs).toHaveLength(240);
-    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(120);
-    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(120);
+  it("ships a balanced 400-verb learning bank", () => {
+    expect(verbs).toHaveLength(400);
+    expect(verbs.filter((verb) => verb.type === "regular")).toHaveLength(200);
+    expect(verbs.filter((verb) => verb.type === "irregular")).toHaveLength(200);
   });
 
   it("keeps verb ids and base forms unique with complete fields", () => {

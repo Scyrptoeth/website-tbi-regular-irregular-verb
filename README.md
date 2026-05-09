@@ -33,10 +33,10 @@ npm run dev
 
 ## Content Baseline
 
-The first sample bank contains 40 original curated verbs:
+The current learning bank contains 400 original curated verbs:
 
-- 20 regular verbs
-- 20 irregular verbs
+- 200 regular verbs
+- 200 irregular verbs
 - 2 mixed test packages
 - 10 original quiz questions
 

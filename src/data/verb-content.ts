@@ -44,9 +44,9 @@ export type TestPackage = {
   questions: QuizQuestion[];
 };
 
-const EXPECTED_VERB_TOTAL = 240;
-const EXPECTED_REGULAR_TOTAL = 120;
-const EXPECTED_IRREGULAR_TOTAL = 120;
+const EXPECTED_VERB_TOTAL = 400;
+const EXPECTED_REGULAR_TOTAL = 200;
+const EXPECTED_IRREGULAR_TOTAL = 200;
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
 const baseVerbs: VerbItem[] = [
